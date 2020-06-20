@@ -1,0 +1,550 @@
+drug=read.table('C:/Users/dines/OneDrive/Desktop/drug_consumption.data',sep=',',header=F,stringsAsFactors = TRUE, na.strings ="?")
+fix(drug)
+colnames(drug) <- c("ID","AGE","GENDER","EDUCATION","COUNTRY","ETHNICITY","NSCORE","ESCORE","OSCORE","ASCORE","CSCORE","IMPULSIVE","SS","ALCOHOL","AMPHET","AMLY","BENZOS","CAFF","CANNABIS","CHOC","COKE","CRACK","ECSTASY","HEROIN","KETAMINE","LEGALH","LSD","METH","MUSHROOMS","NICOTINE","SEMER","VSA")
+fix(drug)
+drug=na.omit(drug)
+library(tree)
+
+attach(drug)
+
+Result=ifelse((HEROIN)=="CL0", "Safe",ifelse((HEROIN)=="CL1","Safe",ifelse((HEROIN)=="CL2","Safe","Unsafe")))
+
+drug=data.frame(drug,Result)
+dim(drug)
+fix(drug)
+attach(drug)
+
+#Hold-out Method
+library(tree)
+
+tree.drug =  tree(HEROIN~.,drug)
+
+summary(tree.drug)
+
+plot(tree.drug)
+
+text(tree.drug,pretty=0)
+
+tree.drug
+
+tree.pred=predict(tree.drug,type="class")
+
+table(tree.pred,HEROIN)
+
+ mean(tree.pred==HEROIN)
+
+ mean(tree.pred!=HEROIN)
+
+ set.seed(123)
+
+training = sample(1:nrow(drug), 943)
+
+drug.test = drug[-training,]
+
+HEROIN.test=HEROIN[-training]
+
+tree.drug=tree(HEROIN~.,drug,subset=training)
+
+tree.pred=predict(tree.drug,drug.test,type="class")
+
+table(tree.pred,HEROIN.test)
+
+mean(tree.pred==HEROIN.test)
+
+mean(tree.pred!=HEROIN.test)
+
+#Random Forest and Bagging
+
+library(randomForest)
+set.seed(123)
+tree.drug=randomForest(HEROIN~.,drug,subset=training,ntree=200,mtry=32)
+tree.drug
+
+tree.pred=predict(tree.drug,drug.test,type="class")
+table(tree.pred,HEROIN.test)
+mean(tree.pred==HEROIN.test)
+mean(tree.pred!=HEROIN.test)
+
+
+
+set.seed(123)
+
+tree.drug=randomForest(HEROIN~.,drug,subset=training,ntree=500,mtry=7)
+
+tree.drug
+
+tree.pred=predict(tree.drug,drug.test,type="class")
+
+table(tree.pred,HEROIN.test)
+
+mean(tree.pred==HEROIN.test)
+
+mean(tree.pred!=HEROIN.test)
+
+set.seed(123)
+
+tree.drug=randomForest(HEROIN~.,drug,subset=training,ntree=800,mtry=7)
+
+tree.drug
+
+tree.pred=predict(tree.drug,drug.test,type="class")
+
+table(tree.pred,HEROIN.test)
+
+mean(tree.pred==HEROIN.test)
+
+mean(tree.pred!=HEROIN.test)
+
+set.seed(123)
+
+tree.drug=randomForest(HEROIN~.,drug,subset=training,ntree=500,mtry=sqrt(7))
+
+tree.drug
+
+tree.pred=predict(tree.drug,drug.test,type="class")
+
+table(tree.pred,HEROIN.test)
+
+mean(tree.pred==HEROIN.test)
+
+mean(tree.pred!=HEROIN.test)
+
+
+set.seed(123)
+
+tree.drug=randomForest(HEROIN~.,drug,subset=training,ntree=800,mtry=sqrt(7))
+
+tree.drug
+
+tree.pred=predict(tree.drug,drug.test,type="class")
+
+table(tree.pred,HEROIN.test)
+
+mean(tree.pred==HEROIN.test)
+
+mean(tree.pred!=HEROIN.test)
+
+
+importance(tree.drug)
+
+varImpPlot(tree.drug)
+
+
+library(gbm)
+
+drug$HEROIN=ifelse(drug$Result=="Safe",1,0)
+
+set.seed(123)
+
+training = sample(1:nrow(drug), 943)
+
+testing = drug[-training,]
+
+HEROIN.test=HEROIN[-training]
+
+ drug.train = drug[training,]
+
+drug.test = drug[-training,]
+
+boost.drug=gbm(HEROIN~.,drug[training, ],distribution="gaussian",n.tree=5000,interaction.depth=4)
+
+yhat.boost=predict(boost.drug, drug[-training,], n.tree=5000, type = "response", interception.depth=4)
+
+mean(yhat.boost !=drug.test)
+
+drug=read.table('C:/Users/dines/OneDrive/Desktop/drug_consumption.data',sep=',',header=F,stringsAsFactors = TRUE, na.strings ="?")
+fix(drug)
+colnames(drug) <- c("ID","AGE","GENDER","EDUCATION","COUNTRY","ETHNICITY","NSCORE","ESCORE","OSCORE","ASCORE","CSCORE","IMPULSIVE","SS","ALCOHOL","AMPHET","AMLY","BENZOS","CAFF","CANNABIS","CHOC","COKE","CRACK","ECSTASY","HEROIN","KETAMINE","LEGALH","LSD","METH","MUSHROOMS","NICOTINE","SEMER","VSA")
+fix(drug)
+drug=na.omit(drug)
+library(tree)
+
+attach(drug)
+
+Result=ifelse((HEROIN)=="CL0", "Safe",ifelse((HEROIN)=="CL1","Safe",ifelse((HEROIN)=="CL2","Safe","Unsafe")))
+
+drug=data.frame(drug,Result)
+dim(drug)
+fix(drug)
+attach(drug)
+
+set.seed(123)
+
+train=sample(1:nrow(drug), 943)
+
+training = drug[train,]
+
+testing = drug[-train,]
+
+fix(training)
+
+fix(testing)
+
+library(e1071)
+
+Naive_Bayes_Model=naiveBayes(HEROIN~., data=training) 
+
+summary(Naive_Bayes_Model)
+
+tr.pred = predict(Naive_Bayes_Model,training)
+
+tr.table = table(tr.pred,Truth = training$HEROIN)
+
+mean(tr.pred== training$HEROIN)
+
+mean(tr.pred!= training$HEROIN)
+
+
+ts.pred = predict(Naive_Bayes_Model,testing)
+
+ts.table = table(ts.pred,Truth = testing$HEROIN)
+
+mean(ts.pred== testing$HEROIN) 
+
+mean(ts.pred!= testing$HEROIN)
+
+#SVM
+
+library(tree)
+
+library(e1071)
+
+library(caret)
+
+
+
+
+
+drug=read.table('C:/Users/dines/OneDrive/Desktop/drug_consumption.data',sep=',',header=F,stringsAsFactors = TRUE, na.strings ="?")
+
+
+fix(drug)
+
+colnames(drug) <- c("ID","AGE","GENDER","EDUCATION","COUNTRY","ETHNICITY","NSCORE","ESCORE","OSCORE","ASCORE","CSCORE","IMPULSIVE","SS","ALCOHOL","AMPHET","AMLY","BENZOS","CAFF","CANNABIS","CHOC","COKE","CRACK","ECSTASY","HEROIN","KETAMINE","LEGALH","LSD","METH","MUSHROOMS","NICOTINE","SEMER","VSA")
+
+drug= na.omit(drug)
+
+
+attach(drug)
+
+training = sample(1:nrow(drug), 943)
+
+HEROIN.train=HEROIN[training]
+
+HEROIN.test=HEROIN[-training]
+
+drug.train = drug[training,]
+
+drug.test = drug[-training,]
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="linear", cost=0.01)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="linear", cost=0.1)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="linear", cost=1)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="linear", cost=10)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="linear", cost=100)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="radial", cost=0.1,gamma=0.2)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="radial", cost=0.1,gamma=0.1)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="radial", cost=0.01,gamma=0.1)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="polynomial", cost=0.01,gamma=3)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="polynomial", cost=0.01,gamma=2)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="polynomial", cost=0.01,gamma=1)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="polynomial", cost=0.1,gamma=1)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="polynomial", cost=0.1,gamma=2)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="polynomial", cost=0.1,gamma=3)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="polynomial", cost=1,gamma=1)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="polynomial", cost=1,gamma=2)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+svmfit=svm(HEROIN~., data=drug.train, kernel="polynomial", cost=1,gamma=3)
+
+summary(svmfit)
+
+tr.pred = predict(svmfit,drug.train)
+
+tr.table = table(tr.pred, truth=drug.train$HEROIN)
+
+mean(tr.pred!=  drug.train$HEROIN)
+
+
+ts.pred = predict(svmfit,drug.test)
+
+ts.table = table(ts.pred, truth = drug.test$HEROIN)
+
+mean(ts.pred!= drug.test$HEROIN)
+
+
+
+
